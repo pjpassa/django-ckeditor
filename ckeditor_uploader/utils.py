@@ -7,9 +7,20 @@ import re
 import string
 
 from django.conf import settings
-from django.core.files.storage import default_storage
+from django.core.files.storage import get_storage_class
 from django.template.defaultfilters import slugify
 from django.utils.encoding import force_text
+from django.utils.functional import LazyObject
+
+
+# Allow for using a storage backend other than the default
+class CkEditorStorage(LazyObject):
+    def _setup(self):
+        self._wrapped = get_storage_class(settings.CKEDITOR_STORAGE)()
+
+
+ckeditor_storage = CkEditorStorage()
+
 
 # Non-image file icons, matched from top to bottom
 fileicons_path = '{0}/file-icons/'.format(getattr(settings, 'CKEDITOR_FILEICONS_PATH', '/static/ckeditor'))
@@ -69,7 +80,7 @@ def get_media_url(path):
     """
     Determine system file's media URL.
     """
-    return default_storage.url(path)
+    return ckeditor_storage.url(path)
 
 
 def is_valid_image_extension(file_path):
