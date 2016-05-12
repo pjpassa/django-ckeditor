@@ -183,5 +183,7 @@ class BrowseView(TemplateView):
             'form': form
         })
 
+        return context
+
 
 browse = BrowseView.as_view()
