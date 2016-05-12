@@ -94,7 +94,7 @@ def get_image_files(user=None, path=''):
 
     restrict = getattr(settings, 'CKEDITOR_RESTRICT_BY_USER', False)
     if user and not user.is_superuser and restrict:
-        user_path = user.username
+        user_path = getattr(user, 'username', str(user.id))
     else:
         user_path = ''
 
