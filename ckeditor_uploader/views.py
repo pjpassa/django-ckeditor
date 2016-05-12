@@ -15,6 +15,7 @@ from ckeditor_uploader import image_processing
 from ckeditor_uploader import utils
 from ckeditor_uploader.forms import SearchForm
 from django.utils.html import escape
+from django.views.generic import TemplateView
 
 
 def get_upload_filename(upload_name, user):
@@ -157,28 +158,33 @@ def is_image(path):
     return ext in ['jpg', 'jpeg', 'png', 'gif']
 
 
-def browse(request):
-    
-    files = get_files_browse_urls(request.user)
-    if request.method == 'POST':
-        form = SearchForm(request.POST)
-        if form.is_valid():
-            query = form.cleaned_data.get('q', '').lower()
-            files = list(filter(lambda d: query in d['visible_filename'].lower(), files))
-    else:
-        form = SearchForm()
+class BrowseView(TemplateView):
+    template_name = "ckeditor/browse.html"
 
-    show_dirs = getattr(settings, 'CKEDITOR_BROWSE_SHOW_DIRS', False)
-    dir_list = sorted(set(os.path.dirname(f['src']) for f in files), reverse=True)
+    def get_context_data(self, **kwargs):
+        context = super(BrowseView, self).get_context_data(**kwargs)
+        files = get_files_browse_urls(self.request.user)
+        if self.request.method == 'POST':
+            form = SearchForm(self.request.POST)
+            if form.is_valid():
+                query = form.cleaned_data.get('q', '').lower()
+                files = list(filter(lambda d: query in d['visible_filename'].lower(), files))
+        else:
+            form = SearchForm()
 
-    # Ensures there are no objects created from Thumbs.db files - ran across this problem while developing on Windows
-    if os.name == 'nt': 
-        files = [f for f in files if os.path.basename(f['src']) != 'Thumbs.db']
+        show_dirs = getattr(settings, 'CKEDITOR_BROWSE_SHOW_DIRS', False)
+        dir_list = sorted(set(os.path.dirname(f['src']) for f in files), reverse=True)
 
-    context = RequestContext(request, {
-        'show_dirs': show_dirs,
-        'dirs': dir_list,
-        'files': files,
-        'form': form
-    })
-    return render_to_response('ckeditor/browse.html', context)
+        # Ensures there are no objects created from Thumbs.db files - ran across this problem while developing on Windows
+        if os.name == 'nt':
+            files = [f for f in files if os.path.basename(f['src']) != 'Thumbs.db']
+
+        context.update({
+            'show_dirs': show_dirs,
+            'dirs': dir_list,
+            'files': files,
+            'form': form
+        })
+
+
+browse = BrowseView.as_view()
