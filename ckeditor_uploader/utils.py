@@ -16,7 +16,7 @@ from django.utils.functional import LazyObject
 # Allow for using a storage backend other than the default
 class CkEditorStorage(LazyObject):
     def _setup(self):
-        self._wrapped = get_storage_class(settings.CKEDITOR_STORAGE)()
+        self._wrapped = get_storage_class(getattr(settings, 'CKEDITOR_STORAGE', None))()
 
 
 ckeditor_storage = CkEditorStorage()
