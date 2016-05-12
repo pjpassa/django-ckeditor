@@ -4,10 +4,7 @@ import os
 from datetime import datetime
 
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
 
@@ -35,7 +32,7 @@ def get_upload_filename(upload_name, user):
     if getattr(settings, "CKEDITOR_UPLOAD_SLUGIFY_FILENAME", True):
         upload_name = utils.slugify_filename(upload_name)
 
-    return default_storage.get_available_name(os.path.join(upload_path, upload_name))
+    return utils.ckeditor_storage.get_available_name(os.path.join(upload_path, upload_name))
 
 
 class ImageUploadView(generic.View):
@@ -73,7 +70,7 @@ class ImageUploadView(generic.View):
     @staticmethod
     def _save_file(request, uploaded_file):
         filename = get_upload_filename(uploaded_file.name, request.user)
-        saved_path = default_storage.save(filename, uploaded_file)
+        saved_path = utils.ckeditor_storage.save(filename, uploaded_file)
         return saved_path
 
     @staticmethod
@@ -104,7 +101,7 @@ def get_image_files(user=None, path=''):
     browse_path = os.path.join(settings.CKEDITOR_UPLOAD_PATH, user_path, path)
 
     try:
-        storage_list = default_storage.listdir(browse_path)
+        storage_list = utils.ckeditor_storage.listdir(browse_path)
     except NotImplementedError:
         return
     except OSError:
