@@ -21,7 +21,7 @@ from django.views.generic import TemplateView
 def get_upload_filename(upload_name, user):
     # If CKEDITOR_RESTRICT_BY_USER is True upload file to user specific path.
     if getattr(settings, 'CKEDITOR_RESTRICT_BY_USER', False):
-            user_path = getattr(user, 'username', user.id)
+            user_path = getattr(user, 'username', str(user.id))
     else:
         user_path = ''
 
